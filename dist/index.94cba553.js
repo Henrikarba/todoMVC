@@ -574,24 +574,30 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"8YDtd":[function(require,module,exports) {
-// Import the framework
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _main = require("./framework/main");
 var _router = require("./framework/router");
 var _routerDefault = parcelHelpers.interopDefault(_router);
-// Create a component for the TodoMVC application
 function TodoMVC() {
-    const [todos, setTodos] = (0, _main.FrameWork).UseState([], "todos");
-    const [inputValue, setInputValue] = (0, _main.FrameWork).UseState("", "inputValue");
-    const handleInputChange = (event)=>{
-        setInputValue(event.target.value);
+    const [todos, setTodos] = (0, _main.FrameWork).UseState([], "todos", TodoMVC);
+    const [inputValue, setInputValue] = (0, _main.FrameWork).UseState("", "inputValue", TodoMVC);
+    const [filter, setFilter] = (0, _main.FrameWork).UseState("all", "filter", TodoMVC);
+    const filteredTodos = todos.filter((todo)=>{
+        if (filter === "active") return !todo.completed;
+        else if (filter === "completed") return todo.completed;
+        return true;
+    });
+    const setActiveFilter = (selectedFilter)=>{
+        setFilter(selectedFilter);
     };
-    const addTodo = ()=>{
-        if (inputValue.trim() !== "") {
+    const addTodo = (event)=>{
+        const newValue = event.target.value;
+        setInputValue(newValue);
+        if (newValue.trim() !== "") {
             setTodos([
                 ...todos,
                 {
-                    text: inputValue,
+                    text: newValue,
                     completed: false
                 }
             ]);
@@ -609,14 +615,19 @@ function TodoMVC() {
         const updatedTodos = todos.filter((_, i)=>i !== index);
         setTodos(updatedTodos);
     };
+    const uncheckedCount = todos.filter((todo)=>!todo.completed).length;
+    const clearCompleted = ()=>{
+        const completedTodos = todos.filter((todo)=>!todo.completed);
+        setTodos(completedTodos);
+    };
     return (0, _main.FrameWork).CreateElement("div", {}, (0, _main.FrameWork).CreateElement("h1", {}, "TodoMVC"), (0, _main.FrameWork).CreateElement("div", {}, (0, _main.FrameWork).CreateElement("input", {
         type: "text",
         value: inputValue,
-        onInput: handleInputChange,
+        onkeypress: function(event) {
+            if (event.key === "Enter") addTodo(event);
+        },
         placeholder: "Add a new todo"
-    }), (0, _main.FrameWork).CreateElement("button", {
-        onClick: addTodo
-    }, "Add")), (0, _main.FrameWork).CreateElement("ul", {}, todos.map((todo, index)=>(0, _main.FrameWork).CreateElement("li", {
+    })), (0, _main.FrameWork).CreateElement("ul", {}, filteredTodos.map((todo, index)=>(0, _main.FrameWork).CreateElement("li", {
             key: index
         }, (0, _main.FrameWork).CreateElement("input", {
             type: "checkbox",
@@ -624,15 +635,57 @@ function TodoMVC() {
             onChange: ()=>toggleTodo(index)
         }), (0, _main.FrameWork).CreateElement("span", {}, todo.text), (0, _main.FrameWork).CreateElement("button", {
             onClick: ()=>removeTodo(index)
-        }, "Remove")))));
+        }, "Remove")))), (0, _main.FrameWork).CreateElement("div", {
+        className: "footer"
+    }, (0, _main.FrameWork).CreateElement("p", {}, `${uncheckedCount} items left`), (0, _main.FrameWork).CreateElement("button", {
+        onClick: ()=>setActiveFilter("all"),
+        className: filter === "all" ? "active" : ""
+    }, "All"), (0, _main.FrameWork).CreateElement("button", {
+        onClick: ()=>setActiveFilter("active"),
+        className: filter === "active" ? "active" : ""
+    }, "Active"), (0, _main.FrameWork).CreateElement("button", {
+        onClick: ()=>setActiveFilter("completed"),
+        className: filter === "completed" ? "active" : ""
+    }, "Completed"), (0, _main.FrameWork).CreateElement("button", {
+        onClick: clearCompleted
+    }, "Clear Completed")));
 }
-// Initialize the framework and render the TodoMVC component
 const container = document.getElementById("app");
 const router = new (0, _routerDefault.default)(container);
 router.registerRoute("/", ()=>TodoMVC());
 router.handleRouteChange();
 
-},{"./framework/main":"bE1Gj","./framework/router":"lNbiG","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bE1Gj":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./framework/main":"bE1Gj","./framework/router":"lNbiG"}],"gkKU3":[function(require,module,exports) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, "__esModule", {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"bE1Gj":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "FrameWork", ()=>FrameWork);
@@ -672,7 +725,6 @@ function isEvent(propName) {
     return propName.startsWith("on");
 }
 function Render(element, container) {
-    console.log(element);
     const dom = element.type == "TEXT_ELEMENT" ? document.createTextNode("") : document.createElement(element.type);
     const isProperty = (key)=>key !== "children";
     Object.keys(element.props).filter(isProperty).forEach((name)=>{
@@ -684,13 +736,12 @@ function Render(element, container) {
     element.props.children.forEach((child)=>Render(child, dom));
     container.appendChild(dom);
 }
-function UseState(initialValue, key) {
-    console.log("hooks", hooks);
+function UseState(initialValue, key, container) {
     if (!hooks.hasOwnProperty(key)) hooks[key] = initialValue;
-    const setState = (newValue, element, key)=>{
+    const setState = (newValue)=>{
         hooks[key] = newValue;
         globalContainer.innerHTML = "";
-        Render(element(), globalContainer);
+        Render(container(), globalContainer);
     };
     return [
         hooks[key],
@@ -704,37 +755,7 @@ const FrameWork = {
     InitFramework
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, "__esModule", {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"lNbiG":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lNbiG":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _main = require("./main");
@@ -760,6 +781,6 @@ class Router {
 }
 exports.default = Router;
 
-},{"./main":"bE1Gj","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["1F4tb","8YDtd"], "8YDtd", "parcelRequire94c2")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./main":"bE1Gj"}]},["1F4tb","8YDtd"], "8YDtd", "parcelRequire94c2")
 
 //# sourceMappingURL=index.94cba553.js.map

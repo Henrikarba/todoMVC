@@ -1,19 +1,29 @@
-// Import the framework
 import { FrameWork } from "./framework/main";
 import Router from "./framework/router";
 
-// Create a component for the TodoMVC application
 function TodoMVC() {
-    const [todos, setTodos] = FrameWork.UseState([], "todos");
-    const [inputValue, setInputValue] = FrameWork.UseState("", "inputValue");
+    const [todos, setTodos] = FrameWork.UseState([], "todos", TodoMVC);
+    const [inputValue, setInputValue] = FrameWork.UseState("", "inputValue", TodoMVC);
+    const [filter, setFilter] = FrameWork.UseState("all", "filter", TodoMVC);
 
-    const handleInputChange = (event) => {
-        setInputValue(event.target.value);
+    const filteredTodos = todos.filter(todo => {
+        if (filter === "active") {
+            return !todo.completed;
+        } else if (filter === "completed") {
+            return todo.completed;
+        }
+        return true;
+    });
+
+    const setActiveFilter = (selectedFilter) => {
+        setFilter(selectedFilter);
     };
 
-    const addTodo = () => {
-        if (inputValue.trim() !== "") {
-            setTodos([...todos, { text: inputValue, completed: false }]);
+    const addTodo = (event) => {
+        const newValue = event.target.value
+        setInputValue(newValue);
+        if (newValue.trim() !== "") {
+            setTodos([...todos, { text: newValue, completed: false }]);
             setInputValue("");
         }
     };
@@ -29,19 +39,29 @@ function TodoMVC() {
         setTodos(updatedTodos);
     };
 
+    const uncheckedCount = todos.filter(todo => !todo.completed).length;
+
+    const clearCompleted = () => {
+        const completedTodos = todos.filter(todo => !todo.completed);
+        setTodos(completedTodos);
+    };
+
     return FrameWork.CreateElement("div", {},
         FrameWork.CreateElement("h1", {}, "TodoMVC"),
         FrameWork.CreateElement("div", {},
             FrameWork.CreateElement("input", {
                 type: "text",
                 value: inputValue,
-                onInput: handleInputChange,
+                onkeypress: function (event) {
+                    if (event.key === "Enter") {
+                        addTodo(event)
+                    }
+                },
                 placeholder: "Add a new todo",
-            }),
-            FrameWork.CreateElement("button", { onClick: addTodo }, "Add"),
+            })
         ),
         FrameWork.CreateElement("ul", {},
-            todos.map((todo, index) =>
+            filteredTodos.map((todo, index) =>
                 FrameWork.CreateElement("li", { key: index },
                     FrameWork.CreateElement("input", {
                         type: "checkbox",
@@ -52,11 +72,26 @@ function TodoMVC() {
                     FrameWork.CreateElement("button", { onClick: () => removeTodo(index) }, "Remove"),
                 )
             )
+        ),
+        FrameWork.CreateElement("div", { className: "footer" },
+            FrameWork.CreateElement("p", {}, `${uncheckedCount} items left`),
+            FrameWork.CreateElement("button", {
+                onClick: () => setActiveFilter("all"),
+                className: filter === "all" ? "active" : ""
+            }, "All"),
+            FrameWork.CreateElement("button", {
+                onClick: () => setActiveFilter("active"),
+                className: filter === "active" ? "active" : ""
+            }, "Active"),
+            FrameWork.CreateElement("button", {
+                onClick: () => setActiveFilter("completed"),
+                className: filter === "completed" ? "active" : ""
+            }, "Completed"),
+            FrameWork.CreateElement("button", { onClick: clearCompleted }, "Clear Completed")
         )
     );
 }
 
-// Initialize the framework and render the TodoMVC component
 const container = document.getElementById("app");
 const router = new Router(container);
 router.registerRoute('/', () => TodoMVC());

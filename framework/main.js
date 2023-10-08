@@ -41,7 +41,6 @@ function isEvent(propName) {
 }
 
 function Render(element, container) {
-  console.log(element)
   const dom =
     element.type == "TEXT_ELEMENT"
       ? document.createTextNode("")
@@ -63,15 +62,14 @@ function Render(element, container) {
   container.appendChild(dom)
 }
 
-function UseState(initialValue, key) {
-  console.log("hooks", hooks)
+function UseState(initialValue, key, container) {
   if (!hooks.hasOwnProperty(key)) {
     hooks[key] = initialValue
   }
-  const setState = (newValue, element, key) => {
+  const setState = (newValue) => {
     hooks[key] = newValue;
     globalContainer.innerHTML = "";
-    Render(element(), globalContainer)
+    Render(container(), globalContainer)
   };
   return [hooks[key], setState];
 }

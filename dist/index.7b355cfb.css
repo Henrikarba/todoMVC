@@ -1,0 +1,15 @@
+body {
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.footer {
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  display: flex;
+}
+
+/*# sourceMappingURL=index.7b355cfb.css.map */
