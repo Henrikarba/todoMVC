@@ -620,33 +620,53 @@ function TodoMVC() {
         const completedTodos = todos.filter((todo)=>!todo.completed);
         setTodos(completedTodos);
     };
-    return (0, _main.FrameWork).CreateElement("div", {}, (0, _main.FrameWork).CreateElement("h1", {}, "TodoMVC"), (0, _main.FrameWork).CreateElement("div", {}, (0, _main.FrameWork).CreateElement("input", {
+    return (0, _main.FrameWork).CreateElement("section", {
+        className: "todoapp"
+    }, (0, _main.FrameWork).CreateElement("header", {
+        className: "header"
+    }, (0, _main.FrameWork).CreateElement("h1", {}, "TodoMVC"), (0, _main.FrameWork).CreateElement("input", {
+        className: "new-todo",
         type: "text",
         value: inputValue,
         onkeypress: function(event) {
             if (event.key === "Enter") addTodo(event);
         },
-        placeholder: "Add a new todo"
-    })), (0, _main.FrameWork).CreateElement("ul", {}, filteredTodos.map((todo, index)=>(0, _main.FrameWork).CreateElement("li", {
+        autofocus: true,
+        placeholder: "What needs to be done?"
+    })), (0, _main.FrameWork).CreateElement("section", {
+        className: "main"
+    }, (0, _main.FrameWork).CreateElement("ul", {
+        className: "todo-list"
+    }, filteredTodos.map((todo, index)=>(0, _main.FrameWork).CreateElement("li", {
             key: index
+        }, (0, _main.FrameWork).CreateElement("div", {
+            className: "view"
         }, (0, _main.FrameWork).CreateElement("input", {
+            className: "toggle",
             type: "checkbox",
             checked: todo.completed,
             onChange: ()=>toggleTodo(index)
-        }), (0, _main.FrameWork).CreateElement("span", {}, todo.text), (0, _main.FrameWork).CreateElement("button", {
+        }), (0, _main.FrameWork).CreateElement("label", {}, todo.text), (0, _main.FrameWork).CreateElement("button", {
+            className: "destroy",
             onClick: ()=>removeTodo(index)
-        }, "Remove")))), (0, _main.FrameWork).CreateElement("div", {
+        })))))), (0, _main.FrameWork).CreateElement("div", {
         className: "footer"
-    }, (0, _main.FrameWork).CreateElement("p", {}, `${uncheckedCount} items left`), (0, _main.FrameWork).CreateElement("button", {
+    }, (0, _main.FrameWork).CreateElement("span", {
+        className: "todo-count"
+    }, `${uncheckedCount} items left`), (0, _main.FrameWork).CreateElement("ul", {
+        className: "filters"
+    }, (0, _main.FrameWork).CreateElement("li", {}, (0, _main.FrameWork).CreateElement("a", {
+        className: "selected",
         onClick: ()=>setActiveFilter("all"),
         className: filter === "all" ? "active" : ""
-    }, "All"), (0, _main.FrameWork).CreateElement("button", {
+    }, "All")), (0, _main.FrameWork).CreateElement("li", {}, (0, _main.FrameWork).CreateElement("a", {
         onClick: ()=>setActiveFilter("active"),
         className: filter === "active" ? "active" : ""
-    }, "Active"), (0, _main.FrameWork).CreateElement("button", {
+    }, "Active")), (0, _main.FrameWork).CreateElement("li", {}, (0, _main.FrameWork).CreateElement("a", {
         onClick: ()=>setActiveFilter("completed"),
         className: filter === "completed" ? "active" : ""
-    }, "Completed"), (0, _main.FrameWork).CreateElement("button", {
+    }, "Completed"))), (0, _main.FrameWork).CreateElement("button", {
+        className: "clear-completed",
         onClick: clearCompleted
     }, "Clear Completed")));
 }

@@ -46,10 +46,11 @@ function TodoMVC() {
         setTodos(completedTodos);
     };
 
-    return FrameWork.CreateElement("div", {},
-        FrameWork.CreateElement("h1", {}, "TodoMVC"),
-        FrameWork.CreateElement("div", {},
+    return FrameWork.CreateElement("section", { className: "todoapp" },
+        FrameWork.CreateElement("header", { className: "header" },
+            FrameWork.CreateElement("h1", {}, "TodoMVC"),
             FrameWork.CreateElement("input", {
+                className: "new-todo",
                 type: "text",
                 value: inputValue,
                 onkeypress: function (event) {
@@ -57,37 +58,54 @@ function TodoMVC() {
                         addTodo(event)
                     }
                 },
-                placeholder: "Add a new todo",
+                autofocus: true,
+                placeholder: "What needs to be done?",
             })
         ),
-        FrameWork.CreateElement("ul", {},
-            filteredTodos.map((todo, index) =>
-                FrameWork.CreateElement("li", { key: index },
-                    FrameWork.CreateElement("input", {
-                        type: "checkbox",
-                        checked: todo.completed,
-                        onChange: () => toggleTodo(index),
-                    }),
-                    FrameWork.CreateElement("span", {}, todo.text),
-                    FrameWork.CreateElement("button", { onClick: () => removeTodo(index) }, "Remove"),
+        FrameWork.CreateElement("section", { className: "main" },
+            FrameWork.CreateElement("ul", { className: "todo-list" },
+                filteredTodos.map((todo, index) =>
+                    FrameWork.CreateElement("li", { key: index },
+                        FrameWork.CreateElement("div", { className: "view" },
+                            FrameWork.CreateElement("input", {
+                                className: "toggle",
+                                type: "checkbox",
+                                checked: todo.completed,
+                                onChange: () => toggleTodo(index),
+                            }),
+                            FrameWork.CreateElement("label", {}, todo.text),
+                            FrameWork.CreateElement("button", { className: "destroy", onClick: () => removeTodo(index) }),
+                        )
+                    )
+
                 )
             )
         ),
         FrameWork.CreateElement("div", { className: "footer" },
-            FrameWork.CreateElement("p", {}, `${uncheckedCount} items left`),
-            FrameWork.CreateElement("button", {
-                onClick: () => setActiveFilter("all"),
-                className: filter === "all" ? "active" : ""
-            }, "All"),
-            FrameWork.CreateElement("button", {
-                onClick: () => setActiveFilter("active"),
-                className: filter === "active" ? "active" : ""
-            }, "Active"),
-            FrameWork.CreateElement("button", {
-                onClick: () => setActiveFilter("completed"),
-                className: filter === "completed" ? "active" : ""
-            }, "Completed"),
-            FrameWork.CreateElement("button", { onClick: clearCompleted }, "Clear Completed")
+            FrameWork.CreateElement("span", { className: "todo-count" }, `${uncheckedCount} items left`),
+            FrameWork.CreateElement("ul", { className: "filters" },
+                FrameWork.CreateElement("li", {},
+                    FrameWork.CreateElement("a", {
+                        className: "selected",
+                        onClick: () => setActiveFilter("all"),
+                        className: filter === "all" ? "active" : ""
+                    }, "All"),
+                ),
+                FrameWork.CreateElement("li", {},
+                    FrameWork.CreateElement("a", {
+                        onClick: () => setActiveFilter("active"),
+                        className: filter === "active" ? "active" : ""
+                    }, "Active"),
+                ),
+                FrameWork.CreateElement("li", {},
+                    FrameWork.CreateElement("a", {
+                        onClick: () => setActiveFilter("completed"),
+                        className: filter === "completed" ? "active" : ""
+                    }, "Completed")
+                )
+            ),
+            FrameWork.CreateElement("button", { className: "clear-completed", onClick: clearCompleted }, "Clear Completed")
+
         )
     );
 }
