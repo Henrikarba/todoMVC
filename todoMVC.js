@@ -1,23 +1,21 @@
 import { FrameWork } from "./framework/main";
 import Router from "./framework/router";
 
-function TodoMVC() {
-    const [todos, setTodos] = FrameWork.UseState([], "todos", TodoMVC);
+const initialTodos = JSON.parse(localStorage.getItem("todos")) || [];
+
+function TodoMVC(page) {
+    const [todos, setTodos] = FrameWork.UseState(initialTodos, "todos", TodoMVC);
     const [inputValue, setInputValue] = FrameWork.UseState("", "inputValue", TodoMVC);
-    const [filter, setFilter] = FrameWork.UseState("all", "filter", TodoMVC);
 
-    const filteredTodos = todos.filter(todo => {
-        if (filter === "active") {
-            return !todo.completed;
-        } else if (filter === "completed") {
-            return todo.completed;
+    if (page === undefined) {
+        if (window.location.pathname === "/") {
+            page = "all"
+        } else if (window.location.pathname === "/active") {
+            page = "active"
+        } else {
+            page = "completed"
         }
-        return true;
-    });
-
-    const setActiveFilter = (selectedFilter) => {
-        setFilter(selectedFilter);
-    };
+    }
 
     const addTodo = (event) => {
         const newValue = event.target.value
@@ -32,11 +30,13 @@ function TodoMVC() {
         const updatedTodos = [...todos];
         updatedTodos[index].completed = !updatedTodos[index].completed;
         setTodos(updatedTodos);
+        localStorage.setItem("todos", JSON.stringify(updatedTodos))
     };
 
     const removeTodo = (index) => {
         const updatedTodos = todos.filter((_, i) => i !== index);
         setTodos(updatedTodos);
+        localStorage.setItem("todos", JSON.stringify(updatedTodos))
     };
 
     const uncheckedCount = todos.filter(todo => !todo.completed).length;
@@ -45,6 +45,15 @@ function TodoMVC() {
         const completedTodos = todos.filter(todo => !todo.completed);
         setTodos(completedTodos);
     };
+    const filteredTodos = todos.filter(todo => {
+        localStorage.setItem("todos", JSON.stringify(todos))
+        if (page === "active") {
+            return !todo.completed;
+        } else if (page === "completed") {
+            return todo.completed;
+        }
+        return true;
+    });
 
     return FrameWork.CreateElement("section", { className: "todoapp" },
         FrameWork.CreateElement("header", { className: "header" },
@@ -64,8 +73,9 @@ function TodoMVC() {
         ),
         FrameWork.CreateElement("section", { className: "main" },
             FrameWork.CreateElement("ul", { className: "todo-list" },
-                filteredTodos.map((todo, index) =>
-                    FrameWork.CreateElement("li", { key: index },
+                todos.map((todo) =>
+
+                    FrameWork.CreateElement("li", { className: todo.completed ? "completed" : "", key: index },
                         FrameWork.CreateElement("div", { className: "view" },
                             FrameWork.CreateElement("input", {
                                 className: "toggle",
@@ -77,40 +87,40 @@ function TodoMVC() {
                             FrameWork.CreateElement("button", { className: "destroy", onClick: () => removeTodo(index) }),
                         )
                     )
-
-                )
+                ),
+                localStorage.setItem("todos", JSON.stringify(todos)),
             )
         ),
-        FrameWork.CreateElement("div", { className: "footer" },
+        FrameWork.CreateElement("footer", { className: "footer" },
             FrameWork.CreateElement("span", { className: "todo-count" }, `${uncheckedCount} items left`),
             FrameWork.CreateElement("ul", { className: "filters" },
                 FrameWork.CreateElement("li", {},
                     FrameWork.CreateElement("a", {
-                        className: "selected",
-                        onClick: () => setActiveFilter("all"),
-                        className: filter === "all" ? "active" : ""
+                        href: "/",
+                        className: page === "all" ? "selected" : "",
                     }, "All"),
                 ),
                 FrameWork.CreateElement("li", {},
                     FrameWork.CreateElement("a", {
-                        onClick: () => setActiveFilter("active"),
-                        className: filter === "active" ? "active" : ""
+                        className: page === "active" ? "selected" : "",
+                        href: "/active",
                     }, "Active"),
                 ),
                 FrameWork.CreateElement("li", {},
                     FrameWork.CreateElement("a", {
-                        onClick: () => setActiveFilter("completed"),
-                        className: filter === "completed" ? "active" : ""
+                        className: page === "completed" ? "selected" : "",
+                        href: "/completed",
                     }, "Completed")
                 )
             ),
-            FrameWork.CreateElement("button", { className: "clear-completed", onClick: clearCompleted }, "Clear Completed")
-
+            FrameWork.CreateElement("button", { className: todos.length !== 0 ? "clear-completed" : "clear-completed hidden", onClick: clearCompleted }, "Clear Completed")
         )
     );
 }
 
 const container = document.getElementById("app");
 const router = new Router(container);
-router.registerRoute('/', () => TodoMVC());
+router.registerRoute('/', () => TodoMVC("all"));
+router.registerRoute('/active', () => TodoMVC("active"));
+router.registerRoute('/completed', () => TodoMVC("completed"));
 router.handleRouteChange();

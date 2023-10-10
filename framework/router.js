@@ -16,6 +16,7 @@ class Router {
         const element = this.routes[path];
 
         if (element) {
+            this.container.innerHTML = "";
             FrameWork.InitFramework(element(), this.container)
         } else {
             const errorMessage = document.createElement('h1');

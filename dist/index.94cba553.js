@@ -578,18 +578,15 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _main = require("./framework/main");
 var _router = require("./framework/router");
 var _routerDefault = parcelHelpers.interopDefault(_router);
-function TodoMVC() {
-    const [todos, setTodos] = (0, _main.FrameWork).UseState([], "todos", TodoMVC);
+const initialTodos = JSON.parse(localStorage.getItem("todos")) || [];
+function TodoMVC(page) {
+    const [todos, setTodos] = (0, _main.FrameWork).UseState(initialTodos, "todos", TodoMVC);
     const [inputValue, setInputValue] = (0, _main.FrameWork).UseState("", "inputValue", TodoMVC);
-    const [filter, setFilter] = (0, _main.FrameWork).UseState("all", "filter", TodoMVC);
-    const filteredTodos = todos.filter((todo)=>{
-        if (filter === "active") return !todo.completed;
-        else if (filter === "completed") return todo.completed;
-        return true;
-    });
-    const setActiveFilter = (selectedFilter)=>{
-        setFilter(selectedFilter);
-    };
+    if (page === undefined) {
+        if (window.location.pathname === "/") page = "all";
+        else if (window.location.pathname === "/active") page = "active";
+        else page = "completed";
+    }
     const addTodo = (event)=>{
         const newValue = event.target.value;
         setInputValue(newValue);
@@ -604,22 +601,30 @@ function TodoMVC() {
             setInputValue("");
         }
     };
-    const toggleTodo = (index)=>{
+    const toggleTodo = (index1)=>{
         const updatedTodos = [
             ...todos
         ];
-        updatedTodos[index].completed = !updatedTodos[index].completed;
+        updatedTodos[index1].completed = !updatedTodos[index1].completed;
         setTodos(updatedTodos);
+        localStorage.setItem("todos", JSON.stringify(updatedTodos));
     };
-    const removeTodo = (index)=>{
-        const updatedTodos = todos.filter((_, i)=>i !== index);
+    const removeTodo = (index1)=>{
+        const updatedTodos = todos.filter((_, i)=>i !== index1);
         setTodos(updatedTodos);
+        localStorage.setItem("todos", JSON.stringify(updatedTodos));
     };
     const uncheckedCount = todos.filter((todo)=>!todo.completed).length;
     const clearCompleted = ()=>{
         const completedTodos = todos.filter((todo)=>!todo.completed);
         setTodos(completedTodos);
     };
+    const filteredTodos = todos.filter((todo)=>{
+        localStorage.setItem("todos", JSON.stringify(todos));
+        if (page === "active") return !todo.completed;
+        else if (page === "completed") return todo.completed;
+        return true;
+    });
     return (0, _main.FrameWork).CreateElement("section", {
         className: "todoapp"
     }, (0, _main.FrameWork).CreateElement("header", {
@@ -637,7 +642,8 @@ function TodoMVC() {
         className: "main"
     }, (0, _main.FrameWork).CreateElement("ul", {
         className: "todo-list"
-    }, filteredTodos.map((todo, index)=>(0, _main.FrameWork).CreateElement("li", {
+    }, todos.map((todo)=>(0, _main.FrameWork).CreateElement("li", {
+            className: todo.completed ? "completed" : "",
             key: index
         }, (0, _main.FrameWork).CreateElement("div", {
             className: "view"
@@ -649,30 +655,31 @@ function TodoMVC() {
         }), (0, _main.FrameWork).CreateElement("label", {}, todo.text), (0, _main.FrameWork).CreateElement("button", {
             className: "destroy",
             onClick: ()=>removeTodo(index)
-        })))))), (0, _main.FrameWork).CreateElement("div", {
+        })))), localStorage.setItem("todos", JSON.stringify(todos)))), (0, _main.FrameWork).CreateElement("footer", {
         className: "footer"
     }, (0, _main.FrameWork).CreateElement("span", {
         className: "todo-count"
     }, `${uncheckedCount} items left`), (0, _main.FrameWork).CreateElement("ul", {
         className: "filters"
     }, (0, _main.FrameWork).CreateElement("li", {}, (0, _main.FrameWork).CreateElement("a", {
-        className: "selected",
-        onClick: ()=>setActiveFilter("all"),
-        className: filter === "all" ? "active" : ""
+        href: "/",
+        className: page === "all" ? "selected" : ""
     }, "All")), (0, _main.FrameWork).CreateElement("li", {}, (0, _main.FrameWork).CreateElement("a", {
-        onClick: ()=>setActiveFilter("active"),
-        className: filter === "active" ? "active" : ""
+        className: page === "active" ? "selected" : "",
+        href: "/active"
     }, "Active")), (0, _main.FrameWork).CreateElement("li", {}, (0, _main.FrameWork).CreateElement("a", {
-        onClick: ()=>setActiveFilter("completed"),
-        className: filter === "completed" ? "active" : ""
+        className: page === "completed" ? "selected" : "",
+        href: "/completed"
     }, "Completed"))), (0, _main.FrameWork).CreateElement("button", {
-        className: "clear-completed",
+        className: todos.length !== 0 ? "clear-completed" : "clear-completed hidden",
         onClick: clearCompleted
     }, "Clear Completed")));
 }
 const container = document.getElementById("app");
 const router = new (0, _routerDefault.default)(container);
-router.registerRoute("/", ()=>TodoMVC());
+router.registerRoute("/", ()=>TodoMVC("all"));
+router.registerRoute("/active", ()=>TodoMVC("active"));
+router.registerRoute("/completed", ()=>TodoMVC("completed"));
 router.handleRouteChange();
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./framework/main":"bE1Gj","./framework/router":"lNbiG"}],"gkKU3":[function(require,module,exports) {
@@ -791,8 +798,10 @@ class Router {
     handleRouteChange() {
         const path = window.location.pathname;
         const element = this.routes[path];
-        if (element) (0, _main.FrameWork).InitFramework(element(), this.container);
-        else {
+        if (element) {
+            this.container.innerHTML = "";
+            (0, _main.FrameWork).InitFramework(element(), this.container);
+        } else {
             const errorMessage = document.createElement("h1");
             errorMessage.textContent = "404 - Page Not Found";
             this.container.appendChild(errorMessage);
